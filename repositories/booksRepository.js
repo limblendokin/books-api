@@ -6,9 +6,10 @@ class BooksRepository {
     const sql = `
 CREATE TABLE IF NOT EXISTS books (
   id INTEGER PRIMARY KEY AUTOINCREMENT,
-  FOREIGN KEY(userId) REFERENCES Users(id),
-  name TEXT)`;
-    return this.dao.each(sql);
+  userId INTEGER,
+  name TEXT,
+  FOREIGN KEY(userId) REFERENCES Users(id))`;
+    return this.dao.run(sql);
   }
   create(name) {
     return this.dao.run('INSERT INTO books (name) VALUES (?)', [name]);
@@ -27,9 +28,11 @@ CREATE TABLE IF NOT EXISTS books (
   getById(id) {
     return this.dao.get(`SELECT * FROM books WHERE id = ?`, [id]);
   }
-  getAll(filter) {
-    const { userId } = filter;
-    return this.dao.each(`SELECT * FROM books WHERE userId = ?`, [userId]);
+  getAll() {
+    return this.dao.all(`SELECT * FROM books`);
+  }
+  getLentBooks(userId) {
+    return this.dao.all(`SELECT * FROM books WHERE userId = ?`, [userId]);
   }
 }
 module.exports = BooksRepository;

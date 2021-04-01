@@ -6,15 +6,19 @@ class UsersRepository {
     const sql = `
 CREATE TABLE IF NOT EXISTS users (
   id INTEGER PRIMARY KEY AUTOINCREMENT,
+  subscription BOOLEAN,
   name TEXT)`;
-    return this.dao.each(sql);
+    return this.dao.run(sql);
   }
   create(name) {
     return this.dao.run('INSERT INTO users (name) VALUES (?)', [name]);
   }
   update(user) {
-    const { id, name } = user;
-    return this.dao.run(`UPDATE users SET name = ? WHERE id = ?`, [name, id]);
+    const { id, name, subscription } = user;
+    return this.dao.run(
+      `UPDATE users SET name = ?, subscription = ? WHERE id = ?`,
+      [name, id, subscription]
+    );
   }
   delete(id) {
     return this.dao.run(`DELETE FROM users WHERE id = ?`, [id]);

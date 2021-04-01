@@ -1,17 +1,32 @@
 const express = require('express');
+const dao = require('./repositories/DataAccessObject');
+const BooksService = require('./services/booksService');
+const BooksRepository = require('./repositories/booksRepository');
+const UsersService = require('./services/usersService');
+const UsersRepository = require('./repositories/usersRepository');
 const app = express();
 app.use(express.json());
-const DAO = require('./repositories/DataAccessObject');
-const db = DAO('./db/books.db');
-const usersRepository = require('./repositories/usersRepository')(db);
-const booksRepository = require('./repositories/usersRepository')(db);
-const subscriptionsRepository = require('./repositories/usersRepository')(db);
-process.on('SIGINT', function () {
-  db.close((err) => {
-    if (err) {
-      return console.error(err.message);
-    }
-    console.log('Close the database connection.');
-    process.exit();
-  });
+const booksRepositoryInstance = new BooksRepository(dao);
+const usersRepositoryInstance = new UsersRepository(dao);
+const booksServiceInstance = new BooksService(
+  booksRepositoryInstance,
+  usersRepositoryInstance
+);
+const usersServiceInstance = new UsersService(
+  booksRepositoryInstance,
+  usersRepositoryInstance
+);
+usersRepositoryInstance.createTable().then(() => {
+  booksRepositoryInstance.createTable();
 });
+const routes = require('./controllers');
+routes(app, booksServiceInstance, usersServiceInstance);
+process.on('SIGINT', function () {
+  dao
+    .close()
+    .then(() => {
+      process.exit();
+    })
+    .catch((err) => process.exit());
+});
+app.listen(5000);
